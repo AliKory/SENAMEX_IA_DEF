@@ -26,7 +26,7 @@ hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
 
 # Diccionario de etiquetas para los gestos
 labels_dict = {
-    0: ' ', 1: ' ', 2: 'Saludos', 3: 'Me', 4: 'Llamo', 5: 'a', 6: 'b', 7: 'c', 8: 'd',
+    0: ' ', 1: ' ', 2: 'saludos', 3: 'me', 4: 'llamo', 5: 'a', 6: 'b', 7: 'c', 8: 'd',
     9: 'e', 10: 'f', 11: 'g', 12: 'h', 13: 'i', 14: 'j', 15: 'k', 16: 'l', 17: 'm', 18: 'n',
     19: 'ene', 20: 'o', 21: 'p', 22: 'q', 23: 'r', 24: 's', 25: 't', 26: 'u', 27: 'v', 28: 'w',
     29: 'y', 30: 'Yo', 31: 'Tu', 32: 'Nosotros', 33: 'Ustedes', 34: 'Ella', 35: 'Hola'
@@ -62,16 +62,22 @@ if check_image is None:
     print("Error: No se pudo cargar la imagen de la palomita (checkmark)")
 
 # Lista de imágenes de signos
-sign_images = ['a.jpeg', 'b.jpeg', 'c.jpeg', 'd.jpeg', 'e.jpeg', 'f.jpeg', 'g.jpeg', 'h.jpeg', 
+sign_images = [None,None,'saludos.jpg','me.jpg',None,'a.jpeg', 'b.jpeg', 'c.jpeg', 'd.jpeg', 'e.jpeg', 'f.jpeg', 'g.jpeg', 'h.jpeg', 
                'i.jpeg', 'j.jpeg', 'k.jpeg', 'l.jpeg', 'm.jpeg', 'n.jpeg', 'ene.jpeg', 'o.jpeg', 
                'p.jpeg', 'q.jpeg', 'r.jpeg', 's.jpeg', 't.jpeg', 'u.jpeg', 'v.jpeg', 'w.jpeg', 
-               'y.jpeg','Yo.jpg','Saludos.jpg']
+               'y.jpeg','Yo.jpg']
 
-# Función para elegir una nueva imagen aleatoria
+# Filtrar solo gestos con imágenes disponibles
+valid_indices = [i for i in range(len(sign_images)) if sign_images[i] is not None]
+
+# Filtrar solo gestos con imágenes disponibles
+valid_sign_images = [img for img in sign_images if img is not None]
+
+# Función para elegir una nueva imagen aleatoria solo de los gestos válidos
 def new_random_image():
-    random_image = './sign_images/' + random.choice(sign_images)
+    random_image = './sign_images/' + random.choice(valid_sign_images)
     random_image_name = random_image.split('/')[-1]  # Extraer solo el nombre del archivo
-    target_label = labels_dict[sign_images.index(random_image_name) + 5]  # Obtener etiqueta esperada
+    target_label = labels_dict[sign_images.index(random_image_name)]  # Obtener etiqueta esperada
     return random_image, target_label
 
 # Inicializar la primera imagen aleatoria
@@ -135,7 +141,15 @@ while True:
         predicted_character = labels_dict[int(prediction[0])]
         proba = model.predict_proba([data_aux])
         confidence = np.max(proba) * 100
+        # Imprimir predicción y confianza
         print(f"Predicción: {predicted_character} con confianza: {confidence:.2f}%")
+        print(f"Objetivo: {target_label}")
+
+        # Revisión de la comparación entre la predicción y el objetivo
+        if predicted_character.strip().lower() == target_label.strip().lower():
+            print(f"Coincidencia encontrada: {predicted_character} == {target_label}")
+        else:
+            print(f"No coincide: {predicted_character} != {target_label}")
 
         x1, y1 = int(min(x_) * W) - 10, int(min(y_) * H) - 10
         x2, y2 = int(max(x_) * W) - 10, int(max(y_) * H) - 10
