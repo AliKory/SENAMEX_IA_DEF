@@ -65,7 +65,7 @@ if check_image is None:
 sign_images = ['a.jpeg', 'b.jpeg', 'c.jpeg', 'd.jpeg', 'e.jpeg', 'f.jpeg', 'g.jpeg', 'h.jpeg', 
                'i.jpeg', 'j.jpeg', 'k.jpeg', 'l.jpeg', 'm.jpeg', 'n.jpeg', 'ene.jpeg', 'o.jpeg', 
                'p.jpeg', 'q.jpeg', 'r.jpeg', 's.jpeg', 't.jpeg', 'u.jpeg', 'v.jpeg', 'w.jpeg', 
-               'y.jpeg']
+               'y.jpeg','Yo.jpg']
 
 # Función para elegir una nueva imagen aleatoria
 def new_random_image():
