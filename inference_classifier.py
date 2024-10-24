@@ -4,6 +4,7 @@ import mediapipe as mp
 import numpy as np
 import pyttsx3
 import os
+import random
 
 # Inicializar el motor de texto a voz
 engine = pyttsx3.init()
@@ -27,12 +28,12 @@ hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
 labels_dict = {
     0: ' ', 1: ' ', 2: 'Saludos', 3: 'Me', 4: 'Llamo', 5: 'a', 6: 'b', 7: 'c', 8: 'd',
     9: 'e', 10: 'f', 11: 'g', 12: 'h', 13: 'i', 14: 'j', 15: 'k', 16: 'l', 17: 'm', 18: 'n',
-    19: 'ñ', 20: 'o', 21: 'p', 22: 'q', 23: 'r', 24: 's', 25: 't', 26: 'u', 27: 'v', 28: 'w',
-    29: 'z', 30: 'Yo', 31: 'Tu', 32: 'Nosotros', 33: 'Ustedes', 34: 'Ella', 35: 'Hola'
+    19: 'ene', 20: 'o', 21: 'p', 22: 'q', 23: 'r', 24: 's', 25: 't', 26: 'u', 27: 'v', 28: 'w',
+    29: 'y', 30: 'Yo', 31: 'Tu', 32: 'Nosotros', 33: 'Ustedes', 34: 'Ella', 35: 'Hola'
 }
 
 # Cargar el modelo entrenado para reconocimiento de emociones
-method = 'LBPH'  # Cambia esto según el modelo que quieras usar: EigenFaces, FisherFaces o LBPH
+method = 'LBPH'
 if method == 'EigenFaces':
     emotion_recognizer = cv2.face.EigenFaceRecognizer_create()
 elif method == 'FisherFaces':
@@ -55,6 +56,27 @@ labels_emotions = {
     0: 'Enojo', 1: 'Felicidad', 2: 'Sorpresa', 3: 'Tristeza'
 }
 
+# Cargar imagen de palomita
+check_image = cv2.imread('./check_image/checkmark.png')
+if check_image is None:
+    print("Error: No se pudo cargar la imagen de la palomita (checkmark)")
+
+# Lista de imágenes de signos
+sign_images = ['a.jpeg', 'b.jpeg', 'c.jpeg', 'd.jpeg', 'e.jpeg', 'f.jpeg', 'g.jpeg', 'h.jpeg', 
+               'i.jpeg', 'j.jpeg', 'k.jpeg', 'l.jpeg', 'm.jpeg', 'n.jpeg', 'ene.jpeg', 'o.jpeg', 
+               'p.jpeg', 'q.jpeg', 'r.jpeg', 's.jpeg', 't.jpeg', 'u.jpeg', 'v.jpeg', 'w.jpeg', 
+               'y.jpeg']
+
+# Función para elegir una nueva imagen aleatoria
+def new_random_image():
+    random_image = './sign_images/' + random.choice(sign_images)
+    random_image_name = random_image.split('/')[-1]  # Extraer solo el nombre del archivo
+    target_label = labels_dict[sign_images.index(random_image_name) + 5]  # Obtener etiqueta esperada
+    return random_image, target_label
+
+# Inicializar la primera imagen aleatoria
+random_image, target_label = new_random_image()
+
 # Detectar rostros
 face_classif = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
@@ -73,6 +95,16 @@ while True:
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     aux_frame = frame.copy()
+
+    # Mostrar imagen random en la parte superior
+    target_img = cv2.imread(random_image)
+    
+    if target_img is None:
+        print(f"Error: No se pudo cargar la imagen {random_image}")
+        break
+    else:
+        target_img = cv2.resize(target_img, (150, 150))  
+        frame[0:150, 0:150] = target_img
 
     # Detección de manos
     results = hands.process(frame_rgb)
@@ -111,23 +143,25 @@ while True:
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 0), 4)
         cv2.putText(frame, predicted_character, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 0), 3, cv2.LINE_AA)
 
+        # Verificar si el gesto coincide con la imagen objetivo
+        if predicted_character == target_label and check_image is not None:
+            check_image_resized = cv2.resize(check_image, (150, 150))
+            frame[0:150, 150:300] = check_image_resized
+            random_image, target_label = new_random_image()
+
     # Detección de emociones
     faces = face_classif.detectMultiScale(gray, 1.3, 5)
     for (x, y, w, h) in faces:
         rostro = aux_frame[y:y + h, x:x + w]
-        rostro = cv2.cvtColor(rostro, cv2.COLOR_BGR2GRAY)  # Convertir el rostro a escala de grises
+        rostro = cv2.cvtColor(rostro, cv2.COLOR_BGR2GRAY)
         rostro = cv2.resize(rostro, (150, 150), interpolation=cv2.INTER_CUBIC)
         result = emotion_recognizer.predict(rostro)
 
         emotion_label = labels_emotions[result[0]]
-        if result[1] < 80:  # Umbral de confianza, ajusta si es necesario
+        if result[1] < 80:  # Umbral de confianza
             image = emotionImage(emotion_label)
-
-            # Redimensiona el emoji para que coincida con el tamaño del frame
             image = cv2.resize(image, (frame.shape[1], frame.shape[0]))
             nFrame = cv2.hconcat([frame, image])
-
-            # Mostrar el frame combinado
             cv2.imshow('Detección de gestos y emociones', nFrame)
         else:
             cv2.putText(frame, 'No identificado', (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (0, 0, 255), 2, cv2.LINE_AA)
@@ -140,6 +174,6 @@ while True:
     elif key == ord('v'):
         engine.say(predicted_character)
         engine.runAndWait()
+    elif key == ord('s'):
+        random_image, target_label = new_random_image() # Cambiar imagen al presionar la tecla 's'
 
-cap.release()
-cv2.destroyAllWindows()
