@@ -62,7 +62,7 @@ if check_image is None:
     print("Error: No se pudo cargar la imagen de la palomita (checkmark)")
 
 # Lista de imágenes de signos
-sign_images = [None,None,'saludos.jpg','me.jpg',None,'a.jpeg', 'b.jpeg', 'c.jpeg', 'd.jpeg', 'e.jpeg', 'f.jpeg', 'g.jpeg', 'h.jpeg', 
+sign_images = [None,None,'saludos.jpg','me.jpg','llamo.jpg','a.jpeg', 'b.jpeg', 'c.jpeg', 'd.jpeg', 'e.jpeg', 'f.jpeg', 'g.jpeg', 'h.jpeg', 
                'i.jpeg', 'j.jpeg', 'k.jpeg', 'l.jpeg', 'm.jpeg', 'n.jpeg', 'ene.jpeg', 'o.jpeg', 
                'p.jpeg', 'q.jpeg', 'r.jpeg', 's.jpeg', 't.jpeg', 'u.jpeg', 'v.jpeg', 'w.jpeg', 
                'y.jpeg','Yo.jpg']
