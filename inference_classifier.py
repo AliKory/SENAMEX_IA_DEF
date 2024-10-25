@@ -30,7 +30,7 @@ labels_dict = {
     9: 'e', 10: 'f', 11: 'g', 12: 'h', 13: 'i', 14: 'j', 15: 'k', 16: 'l', 17: 'm', 18: 'n',
     19: 'ene', 20: 'o', 21: 'p', 22: 'q', 23: 'r', 24: 's', 25: 't', 26: 'u', 27: 'v', 28: 'w',
     29: 'y', 30: 'Yo', 31: 'Tu', 32: 'Nosotros', 33: 'Ustedes', 34: 'Ella', 35: 'Hola',36:'Gracias',
-    37: 'Porfavor', 38: 'Sonreír'
+    37: 'Porfavor', 38: 'Sonreir'
 }
 
 # Cargar el modelo entrenado para reconocimiento de emociones
@@ -66,7 +66,7 @@ if check_image is None:
 sign_images = [None,None,'Saludos.jpg','Me.jpg','Llamo.jpg','a.jpeg', 'b.jpeg', 'c.jpeg', 'd.jpeg', 'e.jpeg', 'f.jpeg', 'g.jpeg', 'h.jpeg', 
                'i.jpeg', 'j.jpeg', 'k.jpeg', 'l.jpeg', 'm.jpeg', 'n.jpeg', 'ene.jpeg', 'o.jpeg', 
                'p.jpeg', 'q.jpeg', 'r.jpeg', 's.jpeg', 't.jpeg', 'u.jpeg', 'v.jpeg', 'w.jpeg', 
-               'y.jpeg','Yo.jpg','Tu.jpg','Nosotros.jpg',None,None,None,'Gracias.jpg','Porfavor.jpg','Sonreír.jpg']
+               'y.jpeg','Yo.jpg','Tu.jpg','Nosotros.jpg',None,None,None,'Gracias.jpg','Porfavor.jpg','Sonreir.jpg']
 
 # Filtrar solo gestos con imágenes disponibles
 valid_indices = [i for i in range(len(sign_images)) if sign_images[i] is not None]
