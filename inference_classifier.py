@@ -5,6 +5,13 @@ import numpy as np
 import pyttsx3
 import os
 import random
+import pygame
+
+# Inicializar audio
+pygame.mixer.init()
+
+# Cargar archivo de audio
+check_sound = pygame.mixer.Sound('./sounds/sound.wav')
 
 # Inicializar el motor de texto a voz
 engine = pyttsx3.init()
@@ -15,6 +22,14 @@ model = model_dict['model']
 
 # Iniciar la captura de video
 cap = cv2.VideoCapture(0)
+
+# Cargar imagen de recompensa
+reward_image = cv2.imread('./check_image/wow.png')
+if reward_image is None:
+    print("Error: No se pudo cargar la imagen de recompensa (reward)")
+
+# Contador de palabras correctas consecutivas
+consecutive_correct = 0
 
 # Configuración de MediaPipe para la detección de manos
 mp_hands = mp.solutions.hands
@@ -29,7 +44,7 @@ labels_dict = {
     0: ' ', 1: ' ', 2: 'Saludos', 3: 'Me', 4: 'Llamo', 5: 'a', 6: 'b', 7: 'c', 8: 'd',
     9: 'e', 10: 'f', 11: 'g', 12: 'h', 13: 'i', 14: 'j', 15: 'k', 16: 'l', 17: 'm', 18: 'n',
     19: 'ene', 20: 'o', 21: 'p', 22: 'q', 23: 'r', 24: 's', 25: 't', 26: 'u', 27: 'v', 28: 'w',
-    29: 'y', 30: 'Yo', 31: 'Tu', 32: 'Nosotros', 33: 'Ustedes', 34: 'Ella', 35: 'Hola',36:'Gracias',
+    29: 'y', 30: 'Yo', 31: 'Tu', 32: 'Nosotros', 33: 'Ustedes', 34: 'Ella', 35: 'Hola', 36: 'Gracias',
     37: 'Porfavor', 38: 'Sonreir'
 }
 
@@ -46,10 +61,14 @@ emotion_recognizer.read('modelo' + method + '.xml')
 
 # Función para cargar los emojis según la emoción
 def emotionImage(emotion):
-    if emotion == 'Felicidad': image = cv2.imread('Emojis/felicidad.jpeg')
-    if emotion == 'Enojo': image = cv2.imread('Emojis/enojo.jpeg')
-    if emotion == 'Sorpresa': image = cv2.imread('Emojis/sorpresa.jpeg')
-    if emotion == 'Tristeza': image = cv2.imread('Emojis/tristeza.jpeg')
+    if emotion == 'Felicidad':
+        image = cv2.imread('Emojis/felicidad.jpeg')
+    elif emotion == 'Enojo':
+        image = cv2.imread('Emojis/enojo.jpeg')
+    elif emotion == 'Sorpresa':
+        image = cv2.imread('Emojis/sorpresa.jpeg')
+    elif emotion == 'Tristeza':
+        image = cv2.imread('Emojis/tristeza.jpeg')
     return image
 
 # Diccionario de emociones para los nombres de las carpetas
@@ -63,13 +82,11 @@ if check_image is None:
     print("Error: No se pudo cargar la imagen de la palomita (checkmark)")
 
 # Lista de imágenes de signos
-sign_images = [None,None,'Saludos.jpg','Me.jpg','Llamo.jpg','a.jpeg', 'b.jpeg', 'c.jpeg', 'd.jpeg', 'e.jpeg', 'f.jpeg', 'g.jpeg', 'h.jpeg', 
-               'i.jpeg', 'j.jpeg', 'k.jpeg', 'l.jpeg', 'm.jpeg', 'n.jpeg', 'ene.jpeg', 'o.jpeg', 
-               'p.jpeg', 'q.jpeg', 'r.jpeg', 's.jpeg', 't.jpeg', 'u.jpeg', 'v.jpeg', 'w.jpeg', 
-               'y.jpeg','Yo.jpg','Tu.jpg','Nosotros.jpg',None,None,None,'Gracias.jpg','Porfavor.jpg','Sonreir.jpg']
-
-# Filtrar solo gestos con imágenes disponibles
-valid_indices = [i for i in range(len(sign_images)) if sign_images[i] is not None]
+sign_images = [None, None, 'Saludos.jpg', 'Me.jpg', 'Llamo.jpg', 'a.jpeg', 'b.jpeg', 'c.jpeg', 'd.jpeg',
+               'e.jpeg', 'f.jpeg', 'g.jpeg', 'h.jpeg', 'i.jpeg', 'j.jpeg', 'k.jpeg', 'l.jpeg', 'm.jpeg',
+               'n.jpeg', 'ene.jpeg', 'o.jpeg', 'p.jpeg', 'q.jpeg', 'r.jpeg', 's.jpeg', 't.jpeg', 'u.jpeg',
+               'v.jpeg', 'w.jpeg', 'y.jpeg', 'Yo.jpg', 'Tu.jpg', 'Nosotros.jpg', None, None, None,
+               'Gracias.jpg', 'Porfavor.jpg', 'Sonreir.jpg']
 
 # Filtrar solo gestos con imágenes disponibles
 valid_sign_images = [img for img in sign_images if img is not None]
@@ -105,12 +122,12 @@ while True:
 
     # Mostrar imagen random en la parte superior
     target_img = cv2.imread(random_image)
-    
+
     if target_img is None:
         print(f"Error: No se pudo cargar la imagen {random_image}")
         break
     else:
-        target_img = cv2.resize(target_img, (150, 150))  
+        target_img = cv2.resize(target_img, (150, 150))
         frame[0:150, 0:150] = target_img
 
     # Detección de manos
@@ -142,6 +159,7 @@ while True:
         predicted_character = labels_dict[int(prediction[0])]
         proba = model.predict_proba([data_aux])
         confidence = np.max(proba) * 100
+
         # Imprimir predicción y confianza
         print(f"Predicción: {predicted_character} con confianza: {confidence:.2f}%")
         print(f"Objetivo: {target_label}")
@@ -163,6 +181,24 @@ while True:
             check_image_resized = cv2.resize(check_image, (150, 150))
             frame[0:150, 150:300] = check_image_resized
             random_image, target_label = new_random_image()
+            check_sound.play()
+            pygame.time.wait(1000)
+
+        # Incrementar el contador de palabras correctas
+        consecutive_correct += 1
+
+        # Mostrar la imagen de recompensa si hay una coincidencia
+    if consecutive_correct == 5:
+        if reward_image is not None:
+            reward_image_resized = cv2.resize(reward_image, (150, 150))
+            frame[H-150:H, W-150:W] = reward_image_resized
+
+            # Restaurar el contador
+            consecutive_correct = 0
+
+        else:
+            # Restaurar el contador si es incorrecto
+            consecutive_correct = 0
 
     # Detección de emociones
     faces = face_classif.detectMultiScale(gray, 1.3, 5)
@@ -190,5 +226,9 @@ while True:
         engine.say(predicted_character)
         engine.runAndWait()
     elif key == ord('s'):
-        random_image, target_label = new_random_image() # Cambiar imagen al presionar la tecla 's'
+        random_image, target_label = new_random_image()  # Cambiar imagen al presionar la tecla 's'
 
+# Liberar recursos
+cap.release()
+cv2.destroyAllWindows()
+pygame.quit()
