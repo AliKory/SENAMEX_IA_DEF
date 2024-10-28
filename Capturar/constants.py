@@ -3,7 +3,7 @@ import cv2
 
 # PATHS
 ROOT_PATH = os.getcwd()
-FRAME_ACTIONS_PATH = os.path.join(ROOT_PATH, "frame_actions")
+FRAME_ACTIONS_PATH = os.path.join(ROOT_PATH, "data")
 DATA_PATH = os.path.join(ROOT_PATH, "data")
 MODELS_PATH = os.path.join(ROOT_PATH, "models")
 
