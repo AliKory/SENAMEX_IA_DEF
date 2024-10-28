@@ -39,7 +39,7 @@ def capture_samples(path, margin_frame=2, min_cant_frames=5):
             else:
                 if len(frames) > min_cant_frames + margin_frame:
                     frames = frames[:-margin_frame]
-                    output_folder = os.path.join(path, f"sample_{cant_sample_exist + count_sample + 1}")
+                    output_folder = os.path.join(path, f"{cant_sample_exist + count_sample + 1}")
                     create_folder(output_folder)
                     save_frames(frames, output_folder)
                     count_sample += 1
@@ -57,6 +57,6 @@ def capture_samples(path, margin_frame=2, min_cant_frames=5):
         cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    word_name = "prueba"
+    word_name = "data"
     word_path = os.path.join(ROOT_PATH, FRAME_ACTIONS_PATH, word_name)
     capture_samples(word_path)
