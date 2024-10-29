@@ -5,14 +5,9 @@ import numpy as np
 import pyttsx3
 import os
 import random
-import pygame
 
 # Inicializar el motor de texto a voz
 engine = pyttsx3.init()
-
-# Inicializar sonido
-pygame.mixer.init(frequency=44100)  # Ajuste estándar de frecuencia
-bell_sound = pygame.mixer.Sound("./sounds/sound.wav")  # Sonido 
 
 # Cargar el modelo entrenado para gestos
 model_dict = pickle.load(open('./model.p', 'rb'))
@@ -49,9 +44,6 @@ elif method == 'LBPH':
 
 emotion_recognizer.read('modelo' + method + '.xml')
 
-# Contador para el check
-check_count = 0
-
 # Función para cargar los emojis según la emoción
 def emotionImage(emotion):
     if emotion == 'Felicidad': image = cv2.imread('Emojis/felicidad.jpeg')
@@ -65,34 +57,10 @@ labels_emotions = {
     0: 'Enojo', 1: 'Felicidad', 2: 'Sorpresa', 3: 'Tristeza'
 }
 
-# Mostrar imagen lobo cada 5 checks
-def show_corner_image():
-    corner_image = cv2.imread('./check_image/wow.jpg')  # Imagen a mostrar
-    if corner_image is not None:
-        resized_corner = cv2.resize(corner_image, (100, 100))
-        # Asegurarse de que frame contenga el video actual
-        ret, frame = cap.read()
-        if ret:
-            frame[screen_height-100:, screen_width-100:] = resized_corner
-            cv2.imshow("Corner Image", frame)  # Mostrar el frame con la imagen en la esquina
-        else:
-            print("Error reading frame from video capture.")
-    else:
-        print("Corner image not found.")
-
-# Cargar imagen de palomita y reproducir sonido
-def show_check():
-    global check_count
-    check_image = cv2.imread('./check_image/checkmark.png')
-    if check_image is not None:
-        cv2.imshow('Check', check_image)
-        pygame.mixer.Sound.play(bell_sound)  # Sonido de campana
-    else:
-        print("Check image not found.")
-    
-    check_count += 1
-    if check_count % 5 == 0:
-        show_corner_image()
+# Cargar imagen de palomita
+check_image = cv2.imread('./check_image/checkmark.png')
+if check_image is None:
+    print("Error: No se pudo cargar la imagen de la palomita (checkmark)")
 
 # Lista de imágenes de signos
 sign_images = [None,None,'Saludos.jpg','Me.jpg','Llamo.jpg','a.jpeg', 'b.jpeg', 'c.jpeg', 'd.jpeg', 'e.jpeg', 'f.jpeg', 'g.jpeg', 'h.jpeg', 
@@ -120,10 +88,6 @@ random_image, target_label = new_random_image()
 face_classif = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
 while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-
     data_aux = []
     x_ = []
     y_ = []
@@ -135,7 +99,6 @@ while True:
         break
 
     H, W, _ = frame.shape
-    # Procesar frame para detección de manos
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     aux_frame = frame.copy()
@@ -179,7 +142,6 @@ while True:
         predicted_character = labels_dict[int(prediction[0])]
         proba = model.predict_proba([data_aux])
         confidence = np.max(proba) * 100
-
         # Imprimir predicción y confianza
         print(f"Predicción: {predicted_character} con confianza: {confidence:.2f}%")
         print(f"Objetivo: {target_label}")
@@ -197,16 +159,10 @@ while True:
         cv2.putText(frame, predicted_character, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 0), 3, cv2.LINE_AA)
 
         # Verificar si el gesto coincide con la imagen objetivo
-        check_image = cv2.imread('./check_image/checkmark.png')
         if predicted_character == target_label and check_image is not None:
             check_image_resized = cv2.resize(check_image, (150, 150))
             frame[0:150, 150:300] = check_image_resized
             random_image, target_label = new_random_image()
-        
-        # Muestra el "check" o sonido cada 5 buenas detecciones
-    if check_count >= 5:
-        show_check()
-        check_count = 0
 
     # Detección de emociones
     faces = face_classif.detectMultiScale(gray, 1.3, 5)
